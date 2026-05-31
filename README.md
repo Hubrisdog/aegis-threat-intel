@@ -1,9 +1,15 @@
-# Aegis Threat Intel (ATI)
+<p align="center">
+  <img src="banner.png" alt="Aegis Threat Intel Banner" width="100%">
+</p>
 
-[![Runtime](https://img.shields.io/badge/Runtime-Bun%20v1.1%2B-blue?logo=bun&style=flat-square)](https://bun.sh/)
-[![Database](https://img.shields.io/badge/Database-SQLite%203.45%2B%20(WAL%20%2F%20FTS5)-orange?logo=sqlite&style=flat-square)](https://sqlite.org/)
-[![UI Framework](https://img.shields.io/badge/UI%20Framework-Vue%203%20%2B%20Vite-green?logo=vue.js&style=flat-square)](https://vuejs.org/)
-[![Network Isolation](https://img.shields.io/badge/Network-Air--Gapped%20Capable-purple?style=flat-square)](#network-boundary--air-gapped-compliance)
+<p align="center">
+  <a href="https://bun.sh/"><img src="https://img.shields.io/badge/Runtime-Bun%20v1.1%2B-blue?logo=bun&style=for-the-badge" alt="Runtime Bun"></a>
+  <a href="https://sqlite.org/"><img src="https://img.shields.io/badge/Database-SQLite%203-orange?logo=sqlite&style=for-the-badge" alt="Database SQLite"></a>
+  <a href="https://vuejs.org/"><img src="https://img.shields.io/badge/UI%20Framework-Vue%203%20%2B%20Vite-green?logo=vue.js&style=for-the-badge" alt="UI Framework Vue 3"></a>
+  <a href="#network-boundary--air-gapped-compliance"><img src="https://img.shields.io/badge/Network-Air--Gapped%20Capable-purple?style=for-the-badge" alt="Network Isolation"></a>
+</p>
+
+# Aegis Threat Intel (ATI)
 
 **Self-Hosted, Privacy-First Threat Intelligence Platform**
 
@@ -72,27 +78,51 @@ Aegis Threat Intel helps security operations centers (SOCs) break free from exte
 
 The platform utilizes a modern decoupled client-server architecture designed to run on-premises with minimum external connections.
 
-```
-                  +--------------------------------------------------------+
-                  |                   Vue 3 UI Client                      |
-                  |   - Split Panel HUD           - In-App Document Manual |
-                  |   - Real-Time Validations     - FAQ Modal Helper       |
-                  +---------------------------+----------------------------+
-                                              | REST / JSON
-                                              v (Proxied via Vite to 4001)
-                  +--------------------------------------------------------+
-                  |                 Bun Application Server                 |
-                  |   - Bun.serve (CORS Whitelisted Origin Checks)         |
-                  |   - Ingestion Scheduler & Concurrency Lock Module      |
-                  |   - SQLite WAL / FTS5 Engine  - Outgoing Alert Engines |
-                  +-------------+----------------------------+-------------+
-                                |                            |
-                                v System Process Spawn       v Private SQL Query
-                  +--------------------------+  +------------+-------------+
-                  |  CVE MCP Python Server   |  |   SQLite Database File   |
-                  |  - 27 Enrichment Tools   |  |   - iocs (Main Repository) |
-                  |  - Windows Spawning Env  |  |   - iocs_fts (Virtual V5)  |
-                  +--------------------------+  +--------------------------+
+```mermaid
+flowchart TD
+    %% Styling
+    classDef client fill:#1b2a47,stroke:#00F2FE,stroke-width:2px,color:#fff;
+    classDef server fill:#2d1b47,stroke:#a855f7,stroke-width:2px,color:#fff;
+    classDef database fill:#2b2d30,stroke:#343b44,stroke-width:1px,color:#fff;
+
+    subgraph Presentation ["💻 Presentation Layer"]
+        V3["Vue 3 UI Client (Vite)"]
+        HUD["Split Panel HUD"]
+        Docs["Scrollspy Manuals"]
+        V3 --- HUD
+        V3 --- Docs
+    end
+
+    subgraph Backend ["⚡ Application Layer"]
+        BS["Bun Server"]
+        Poll["Ingestion Scheduler"]
+        Lock["Mutex Ingestion Lock"]
+        Webhook["Slack & Teams Webhooks"]
+        BS --- Poll
+        Poll --- Lock
+        BS --- Webhook
+    end
+
+    subgraph Data ["🗄️ Storage & Enrichment"]
+        DB[("SQLite Database File")]
+        WAL["Write-Ahead Logging (WAL)"]
+        FTS["FTS5 Full-Text Virtual Index"]
+        MCP["🐍 CVE MCP Python Server"]
+        Tools["VirusTotal / Shodan Enrichment"]
+        DB --- WAL
+        DB --- FTS
+        MCP --- Tools
+    end
+
+    %% Flow
+    V3 -->|REST / JSON APIs| BS
+    BS -->|Private SQL Queries| DB
+    BS -->|System Process Spawn| MCP
+
+    %% Apply Classes
+    class V3,HUD,Docs client;
+    class BS,Poll,Lock,Webhook server;
+    class DB,WAL,FTS,MCP,Tools database;
 ```
 
 ### Decoupled Components
