@@ -14,7 +14,7 @@ Aegis Threat Intel (ATI) is a self-hosted, privacy-first threat intelligence pla
 ## Live Interactive Demo
 
 A live interactive demo of the front-end dashboard is available at:
-👉 **[https://aegis-threat-intel.vercel.app/](https://aegis-threat-intel.vercel.app/)**
+👉 Live Dashboard: **[aegis-threat-intel.vercel.app](https://aegis-threat-intel.vercel.app/)**
 
 ### Quick Demo Walkthrough Guide
 
