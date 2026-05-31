@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="images/dashboard.png" alt="Aegis Threat Intel Dashboard" width="100%">
+  <img src="screenshots/dashboard-overview.png" alt="Aegis Threat Intel Dashboard" width="100%">
 </p>
 
 <p align="center">
