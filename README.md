@@ -60,7 +60,37 @@ To explore the capabilities of the Aegis HUD interface without deploying the Bun
 11. [Future Roadmap](#future-roadmap)
 
 ---
+```mermaid
+flowchart TD
 
+    A[Threat Feeds] --> B[Ingestion Pipeline]
+
+    B --> C[SQLite WAL Database]
+
+    C --> D[FTS5 Search Engine]
+
+    D --> E[Threat Dashboard]
+
+    D --> F[AI Analyst]
+
+    G[Manual IOC Submission] --> C
+
+    F --> H[Claude]
+    F --> I[Ollama]
+
+    F --> J[MCP Enrichment]
+
+    J --> K[VirusTotal]
+    J --> L[GreyNoise]
+    J --> M[Shodan]
+    J --> N[NVD]
+
+    C --> O[Webhook Engine]
+
+    O --> P[Slack]
+    O --> Q[MS Teams]
+    O --> R[Generic JSON]
+```
 ## Platform Capabilities
 
 Aegis Threat Intel helps security operations centers (SOCs) break free from external cloud dependencies for threat intelligence analysis. Modern cloud-based TIPs risk leaking internal query parameters, proprietary system logs, and sensitive security events to third-party providers. ATI operates entirely within your network boundary, offering:
