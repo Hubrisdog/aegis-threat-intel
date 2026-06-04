@@ -104,56 +104,78 @@ Aegis Threat Intel helps security operations centers (SOCs) break free from exte
 
 ---
 
-## System Architecture
-
-The platform utilizes a modern decoupled client-server architecture designed to run on-premises with minimum external connections.
+## Architecture Overview
 
 ```mermaid
-flowchart TD
-    %% Styling
-    classDef client fill:#1b2a47,stroke:#00F2FE,stroke-width:2px,color:#fff;
-    classDef server fill:#2d1b47,stroke:#a855f7,stroke-width:2px,color:#fff;
-    classDef database fill:#2b2d30,stroke:#343b44,stroke-width:1px,color:#fff;
+flowchart LR
 
-    subgraph Presentation ["💻 Presentation Layer"]
-        V3["Vue 3 UI Client (Vite)"]
-        HUD["Split Panel HUD"]
-        Docs["Scrollspy Manuals"]
-        V3 --- HUD
-        V3 --- Docs
+    subgraph External["External Intelligence Sources"]
+        KEV["CISA KEV"]
+        URLHaus["URLhaus"]
+        ThreatFox["ThreatFox"]
     end
 
-    subgraph Backend ["⚡ Application Layer"]
-        BS["Bun Server"]
-        Poll["Ingestion Scheduler"]
-        Lock["Mutex Ingestion Lock"]
-        Webhook["Slack & Teams Webhooks"]
-        BS --- Poll
-        Poll --- Lock
-        BS --- Webhook
+    subgraph Aegis["Aegis Threat Intel Platform"]
+        Scheduler["Feed Scheduler"]
+        DB[("SQLite WAL Database")]
+        FTS["FTS5 Search Engine"]
+        Dashboard["Threat Dashboard"]
+        AI["AI Analyst"]
     end
 
-    subgraph Data ["🗄️ Storage & Enrichment"]
-        DB[("SQLite Database File")]
-        WAL["Write-Ahead Logging (WAL)"]
-        FTS["FTS5 Full-Text Virtual Index"]
-        MCP["🐍 CVE MCP Python Server"]
-        Tools["VirusTotal / Shodan Enrichment"]
-        DB --- WAL
-        DB --- FTS
-        MCP --- Tools
+    subgraph AIProviders["AI Providers"]
+        Claude["Anthropic Claude"]
+        Ollama["Local Ollama"]
     end
 
-    %% Flow
-    V3 -->|REST / JSON APIs| BS
-    BS -->|Private SQL Queries| DB
-    BS -->|System Process Spawn| MCP
+    subgraph Enrichment["Optional Enrichment"]
+        MCP["CVE MCP Server"]
+        VT["VirusTotal"]
+        GN["GreyNoise"]
+        Shodan["Shodan"]
+        NVD["NVD"]
+    end
 
-    %% Apply Classes
-    class V3,HUD,Docs client;
-    class BS,Poll,Lock,Webhook server;
-    class DB,WAL,FTS,MCP,Tools database;
+    subgraph Integrations["Outbound Integrations"]
+        Slack["Slack"]
+        Teams["Microsoft Teams"]
+        Generic["Generic Webhook"]
+    end
+
+    KEV --> Scheduler
+    URLHaus --> Scheduler
+    ThreatFox --> Scheduler
+
+    Scheduler --> DB
+    DB --> FTS
+
+    FTS --> Dashboard
+    FTS --> AI
+
+    AI --> Claude
+    AI --> Ollama
+
+    AI --> MCP
+
+    MCP --> VT
+    MCP --> GN
+    MCP --> Shodan
+    MCP --> NVD
+
+    DB --> Slack
+    DB --> Teams
+    DB --> Generic
 ```
+## Design Principles
+
+Aegis Threat Intel was designed around four core principles:
+
+- **Privacy First** — Threat telemetry remains within organizational boundaries.
+- **Local-First Architecture** — Core functionality operates without cloud dependencies.
+- **Operational Simplicity** — SQLite WAL and Bun reduce deployment complexity while maintaining performance.
+- **AI Optionality** — Analysts can switch between cloud-hosted models (Claude) and local inference (Ollama) depending on security requirements.
+
+This architecture enables organizations to perform threat intelligence analysis, IOC correlation, enrichment, and reporting while minimizing external exposure of sensitive security data.
 
 ### Decoupled Components
 
