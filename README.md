@@ -60,111 +60,75 @@ To explore the capabilities of the Aegis HUD interface without deploying the Bun
 11. [Future Roadmap](#future-roadmap)
 
 ---
+
+## System Architecture
+
 ```mermaid
 flowchart TD
-
-    A[Threat Feeds] --> B[Ingestion Pipeline]
-
-    B --> C[SQLite WAL Database]
-
-    C --> D[FTS5 Search Engine]
-
-    D --> E[Threat Dashboard]
-
-    D --> F[AI Analyst]
-
-    G[Manual IOC Submission] --> C
-
-    F --> H[Claude]
-    F --> I[Ollama]
-
-    F --> J[MCP Enrichment]
-
-    J --> K[VirusTotal]
-    J --> L[GreyNoise]
-    J --> M[Shodan]
-    J --> N[NVD]
-
-    C --> O[Webhook Engine]
-
-    O --> P[Slack]
-    O --> Q[MS Teams]
-    O --> R[Generic JSON]
-```
-## Platform Capabilities
-
-Aegis Threat Intel helps security operations centers (SOCs) break free from external cloud dependencies for threat intelligence analysis. Modern cloud-based TIPs risk leaking internal query parameters, proprietary system logs, and sensitive security events to third-party providers. ATI operates entirely within your network boundary, offering:
-
-- **Automated Intelligence Feed Ingestion**: Connects to and pulls daily threat telemetry from feeds including CISA Known Exploited Vulnerabilities (KEV), URLhaus, and ThreatFox.
-- **Custom IOC Manual Injection**: A real-time data ingestion portal to manually catalog and describe internal threat events, indicators, or CVE identifiers.
-- **Cognitive AI Analyst**: A senior threat analyst interface running context-aware queries, parsing unstructured briefs, mapping actions to the MITRE ATT&CK framework, and writing search process signatures.
-- **Post-Processing Safe Defanging Engine**: An automated security filter converting active domains, URLs, and IP addresses to safe, non-navigable formats (e.g., `hxxps://`, `[.]`) in briefs, logs, and exports.
-- **Data Privacy & AI Model Portability**: Toggle dynamically between secure cloud execution (Anthropic Claude API) and offline local processing (Ollama local inference) to comply with air-gapped guidelines.
-- **Outbound Alerting & Webhooks**: Integrated MS Teams Adaptive Cards, Slack Markdown, and Generic JSON alerts triggered by high-severity ingest events.
-
----
-
-## Architecture Overview
-
-```mermaid
-flowchart LR
-
-    subgraph External["External Intelligence Sources"]
-        KEV["CISA KEV"]
-        URLHaus["URLhaus"]
-        ThreatFox["ThreatFox"]
+    subgraph ExternalFeeds["🌐 External Intel Ingestion"]
+        A[CISA KEV, URLhaus, ThreatFox Feeds]
     end
 
-    subgraph Aegis["Aegis Threat Intel Platform"]
-        Scheduler["Feed Scheduler"]
-        DB[("SQLite WAL Database")]
-        FTS["FTS5 Search Engine"]
-        Dashboard["Threat Dashboard"]
-        AI["AI Analyst"]
+    subgraph AppBoundary["🛡️ Aegis Network Boundary (Air-Gapped Node)"]
+        B[📥 Ingestion Pipeline]
+        G[📝 Manual IOC Submission]
+        
+        db[("💾 SQLite Database <br> [WAL Journaling Mode]")]
+        fts["🔍 FTS5 Native Virtual Table Search Engine"]
+        
+        E["🖥️ Vue 3 Threat Dashboard (Vite HUD)"]
+        F["🧠 AI Analyst Cognitive Core"]
+        
+        W["📡 Outbound Webhook Engine"]
+        M["🔗 MCP Enrichment Engine Subprocess"]
     end
 
-    subgraph AIProviders["AI Providers"]
-        Claude["Anthropic Claude"]
-        Ollama["Local Ollama"]
+    subgraph ModelExecution["🤖 AI Inference Backends"]
+        H["☁️ Anthropic Claude API <br> (Cloud Processing)"]
+        I["🦙 Local Ollama Daemon <br> (Offline Air-Gapped)"]
     end
 
-    subgraph Enrichment["Optional Enrichment"]
-        MCP["CVE MCP Server"]
-        VT["VirusTotal"]
-        GN["GreyNoise"]
-        Shodan["Shodan"]
-        NVD["NVD"]
+    subgraph Integrations["🔔 SIEM & Incident Alerts"]
+        P["💬 Slack Channel"]
+        Q["💼 Microsoft Teams"]
+        R["⚙️ Generic JSON Webhook"]
     end
 
-    subgraph Integrations["Outbound Integrations"]
-        Slack["Slack"]
-        Teams["Microsoft Teams"]
-        Generic["Generic Webhook"]
+    subgraph Diagnostics["🛠️ Context Enrichment Tools"]
+        K["🦠 VirusTotal"]
+        L["📡 GreyNoise"]
+        MX["🎯 Shodan"]
+        N["📋 NVD & EPSS"]
     end
 
-    KEV --> Scheduler
-    URLHaus --> Scheduler
-    ThreatFox --> Scheduler
+    %% Ingestion Data Flow
+    A -->|⚡ Async HTTP Polling| B
+    B -->|📦 Atomic Batch Write| db
+    G -->|✍️ Manual Entry Request| db
 
-    Scheduler --> DB
-    DB --> FTS
+    %% Storage & Indexing Data Flow
+    db -->|🔄 Virtual Sync Loop| fts
 
-    FTS --> Dashboard
-    FTS --> AI
+    %% Front-End HUD Interface Routing
+    fts -->|📈 High-Performance Query| E
+    fts -->|📋 Context Inject Matrix| F
 
-    AI --> Claude
-    AI --> Ollama
+    %% Multi-Model AI Routing
+    F -->|🔑 Cloud Request Path| H
+    F -->|🔌 Localhost API Route| I
 
-    AI --> MCP
+    %% Webhook Dispatches
+    db -->|🚀 Trigger High-Severity Match| W
+    W -->|📝 Markdown Payload| P
+    W -->|🎴 Adaptive Cards Payload| Q
+    W -->|⚙️ Raw JSON Stream| R
 
-    MCP --> VT
-    MCP --> GN
-    MCP --> Shodan
-    MCP --> NVD
-
-    DB --> Slack
-    DB --> Teams
-    DB --> Generic
+    %% MCP Diagnostics Core Lookups
+    F -->|🛠️ Subprocess Invoke| M
+    M -->|🔍 API Hash Check| K
+    M -->|🛰️ Context Scan| L
+    M -->|🌐 Port Probe Analysist| MX
+    M -->|📊 Vulnerability Matrix| N
 ```
 ## Design Principles
 
